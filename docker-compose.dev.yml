@@ -1,0 +1,93 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      APP_ADMIN_EMAIL: "admin@example.com"
+      APP_ADMIN_PASSWORD: "password"
+      APP_TIMEZONE: "UTC"
+      APP_DEBUG: "true"
+      APP_UPDATEDEPS: "false"
+      APP_PUBLIC_URL: "http://192.168.1.3:8080"
+      APACHE_SERVER_NAME: "localhost"
+      DB_HOST: "db"
+      DB_PORT: 3306
+      DB_DATABASE: "hortusfox"
+      DB_USERNAME: "user"
+      DB_PASSWORD: "password"
+      DB_CHARSET: "utf8mb4"
+    volumes:
+      # Mount the code you are most likely to edit during local development.
+      - ./app/commands:/var/www/html/app/commands
+      - ./app/config:/var/www/html/app/config
+      - ./app/controller:/var/www/html/app/controller
+      - ./app/events:/var/www/html/app/events
+      - ./app/helper:/var/www/html/app/helper
+      - ./app/lang:/var/www/html/app/lang
+      - ./app/models:/var/www/html/app/models
+      - ./app/modules:/var/www/html/app/modules
+      - ./app/resources:/var/www/html/app/resources
+      - ./app/tests:/var/www/html/app/tests
+      - ./app/validators:/var/www/html/app/validators
+      - ./app/views:/var/www/html/app/views
+      - ./public/css:/var/www/html/public/css
+      - ./public/install:/var/www/html/public/install
+      - ./public/js:/var/www/html/public/js
+      - ./public/index.php:/var/www/html/public/index.php
+      - ./public/logo.png:/var/www/html/public/logo.png
+      - ./public/manifest.json:/var/www/html/public/manifest.json
+      - ./public/robots.txt:/var/www/html/public/robots.txt
+      - ./public/serviceworker.js:/var/www/html/public/serviceworker.js
+      - ./public/.htaccess:/var/www/html/public/.htaccess
+      - ./scripts:/var/www/html/scripts
+      - ./cache:/var/www/html/cache
+      - ./asatru:/var/www/html/asatru
+      - ./composer.json:/var/www/html/composer.json
+      - ./composer.lock:/var/www/html/composer.lock
+      - ./package.json:/var/www/html/package.json
+      - ./package-lock.json:/var/www/html/package-lock.json
+      - ./phpunit.xml:/var/www/html/phpunit.xml
+      - ./webpack.config.js:/var/www/html/webpack.config.js
+      - ./99-php.ini:/usr/local/etc/php/conf.d/99-php.ini
+
+      # Keep generated or auto-populated paths inside Docker volumes so the
+      # entrypoint does not overwrite files in your working tree.
+      - app_vendor:/var/www/html/vendor
+      - app_images:/var/www/html/public/img
+      - app_logs:/var/www/html/app/logs
+      - app_backup:/var/www/html/public/backup
+      - app_themes:/var/www/html/public/themes
+      - app_migrate:/var/www/html/app/migrations
+
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: "my-secret-pw"
+      MARIADB_DATABASE: "hortusfox"
+      MARIADB_USER: "user"
+      MARIADB_PASSWORD: "password"
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-pmy-secret-pw"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  db_data:
+  app_vendor:
+  app_images:
+  app_logs:
+  app_backup:
+  app_themes:
+  app_migrate:

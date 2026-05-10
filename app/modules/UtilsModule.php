@@ -16,6 +16,7 @@ class UtilsModule {
     {
         setLanguage($lang);
         $_COOKIE['current_language'] = $lang;
+        static::applyLocale($lang);
     }
 
     /**
@@ -23,7 +24,40 @@ class UtilsModule {
      */
     public static function getLanguage()
     {
-        return $_COOKIE['current_language'];
+        return $_COOKIE['current_language'] ?? app('language', env('APP_LANG', 'en'));
+    }
+
+    /**
+     * @param string|null $lang
+     * @return string
+     */
+    public static function getLocaleIdentifier($lang = null)
+    {
+        $lang = strtolower($lang ?? static::getLanguage());
+
+        $mapping = [
+            'pt-br' => 'pt_BR',
+            'zh-cn' => 'zh_CN',
+        ];
+
+        return $mapping[$lang] ?? str_replace('-', '_', $lang);
+    }
+
+    /**
+     * @param string|null $lang
+     * @return void
+     */
+    public static function applyLocale($lang = null)
+    {
+        $locale = static::getLocaleIdentifier($lang);
+
+        if (function_exists('locale_set_default')) {
+            locale_set_default($locale);
+        }
+
+        if (class_exists('Carbon')) {
+            Carbon::setLocale($locale);
+        }
     }
 
     /**

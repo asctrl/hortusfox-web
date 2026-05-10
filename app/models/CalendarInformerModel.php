@@ -46,7 +46,7 @@ class CalendarInformerModel extends \Asatru\Database\Model {
                             $lang = env('APP_LANG', 'en');
                         }
 
-                        setLanguage($lang);
+                        UtilsModule::setLanguage($lang);
                         
                         $mailobj = new Asatru\SMTPMailer\SMTPMailer();
                         $mailobj->setRecipient($user->get('email'));

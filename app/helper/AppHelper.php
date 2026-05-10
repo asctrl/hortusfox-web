@@ -130,6 +130,20 @@ function workspace_url($path)
         return $rp . $path;
     }
 
+    return public_url($path);
+}
+
+/**
+ * @param $path
+ * @return string
+ */
+function public_url($path)
+{
+    $public_url = env('APP_PUBLIC_URL', null);
+    if ((is_string($public_url)) && (strlen($public_url) > 0)) {
+        return rtrim($public_url, '/') . '/' . ltrim($path, '/');
+    }
+
     return url($path);
 }
 

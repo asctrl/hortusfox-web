@@ -70,7 +70,7 @@
 									{{ $plant->get('scientific_name') }}
 								@endif
 							@else
-								<span class="is-not-available">N/A</span>
+								<span class="is-not-available">{{ __('app.none') }}</span>
 							@endif
 						</span>
 					
@@ -90,7 +90,7 @@
 						@if ($plant->get('last_watered'))
 							{{ date('Y-m-d', strtotime($plant->get('last_watered'))) }}
 						@else
-							<span class="is-not-available">N/A</span>
+							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
 						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'last_watered', '{{ ($plant->get('last_watered')) ? date('Y-m-d', strtotime($plant->get('last_watered'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
@@ -105,7 +105,7 @@
 						@if ($plant->get('last_repotted'))
 							{{ date('Y-m-d', strtotime($plant->get('last_repotted'))) }}
 						@else
-							<span class="is-not-available">N/A</span>
+							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
 						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'last_repotted', '{{ ($plant->get('last_repotted')) ? date('Y-m-d', strtotime($plant->get('last_repotted'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
@@ -121,7 +121,7 @@
 						@if ($plant->get('last_fertilised'))
 							{{ date('Y-m-d', strtotime($plant->get('last_fertilised'))) }}
 						@else
-							<span class="is-not-available">N/A</span>
+							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
 						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'last_fertilised', '{{ ($plant->get('last_fertilised')) ? date('Y-m-d', strtotime($plant->get('last_fertilised'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
@@ -137,7 +137,7 @@
 						@if ($plant->get('lifespan'))
 							{{ __('app.' . $plant->get('lifespan')) }}
 						@else
-							<span class="is-not-available">N/A</span>
+							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
 						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'lifespan', window.vue.comboLifespan, '{{ ($plant->get('lifespan') ?? 'N/A') }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
@@ -152,7 +152,7 @@
 						@if (!is_null($plant->get('hardy')))
 							{!! ($plant->get('hardy')) ? '<span class="is-color-yes">' . __('app.yes') . '</span>' : '<span class="is-color-no">' . __('app.no') . '</span>' !!}
 						@else
-							<span class="is-not-available">N/A</span>
+							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
 						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditBoolean({{ $plant->get('id') }}, 'hardy', '{{ __('app.hardy') }}', {{ ($plant->get('hardy')) ? 'true' : 'false' }});"><i class="fas fa-edit is-color-darker"></i></a></span>
@@ -163,7 +163,7 @@
 				@if (plant_attr('cutting_month'))
 				<tr>
 					<td><strong>{{ __('app.cutting_month') }}</strong></td>
-					<td>{!! ($plant->get('cutting_month')) ? UtilsModule::getMonthList()[$plant->get('cutting_month')] : '<span class="is-not-available">N/A</span>' !!} <span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'cutting_month', window.vue.comboCuttingMonth, {{ ($plant->get('cutting_month')) ?? '0' }});"><i class="fas fa-edit is-color-darker"></i></a></span></td>
+					<td>{!! ($plant->get('cutting_month')) ? UtilsModule::getMonthList()[$plant->get('cutting_month')] : '<span class="is-not-available">' . __('app.none') . '</span>' !!} <span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'cutting_month', window.vue.comboCuttingMonth, {{ ($plant->get('cutting_month')) ?? '0' }});"><i class="fas fa-edit is-color-darker"></i></a></span></td>
 				</tr>
 				@endif
 
@@ -174,7 +174,7 @@
 						@if ($plant->get('date_of_purchase'))
 							{{ date('Y-m-d', strtotime($plant->get('date_of_purchase'))) }}
 						@else
-							<span class="is-not-available">N/A</span>
+							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 						
 						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'date_of_purchase', '{{ ($plant->get('date_of_purchase')) ? date('Y-m-d', strtotime($plant->get('date_of_purchase'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
@@ -189,7 +189,7 @@
 						@if ($plant->get('humidity'))
 							{{ $plant->get('humidity') . '%' }}
 						@else
-							<span class="is-not-available">N/A</span>
+							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
 						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditInteger({{ $plant->get('id') }}, 'humidity', '{{ ($plant->get('humidity') ?? '0') }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
@@ -204,7 +204,7 @@
 						@if ($plant->get('light_level'))
 							{{ __('app.' . $plant->get('light_level')) }}
 						@else
-							<span class="is-not-available">N/A</span>
+							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
 						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'light_level', window.vue.comboLightLevel, '{{ ($plant->get('light_level') ?? 'N/A') }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
@@ -234,7 +234,7 @@
 									@endif
 								@endif
 							@else
-								<span class="is-not-available">N/A</span>
+								<span class="is-not-available">{{ __('app.none') }}</span>
 							@endif
 
 							<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCustomPlantAttribute({{ $custom_attribute->id }}, {{ $custom_attribute->plant }}, '{{ $custom_attribute->label }}', '{{ $custom_attribute->datatype }}', '{{ $custom_attribute->content ?? '' }}', {{ ($custom_attribute->global) ? 'true' : 'false' }});"><i class="fas fa-edit is-color-darker"></i></a></span>
@@ -395,7 +395,7 @@
 								</div>
 							</div>
 
-							<div class="task-description" id="task-item-description-{{ $task->get('id') }}"><pre>{!! ($task->get('description')) ? UtilsModule::translateURLs($task->get('description')) : 'N/A' !!}</pre></div>
+							<div class="task-description" id="task-item-description-{{ $task->get('id') }}"><pre>{!! ($task->get('description')) ? UtilsModule::translateURLs($task->get('description')) : __('app.none') !!}</pre></div>
 							
 							<div class="task-footer">
 								<div class="task-footer-date">{{ (new Carbon($task->get('created_at')))->diffForHumans() }}</div>

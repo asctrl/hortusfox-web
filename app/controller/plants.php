@@ -234,6 +234,65 @@ class PlantsController extends BaseController {
 	}
 
 	/**
+	 * Handles URL: /plants/public/{id}/{signature}
+	 * 
+	 * @param Asatru\Controller\ControllerArg $request
+	 * @return Asatru\View\ViewHandler
+	 */
+	public function view_public_plant_details($request)
+	{
+		$plant_id = $request->arg('id');
+		$signature = $request->arg('signature');
+
+		$plant_data = PlantsModel::getDetails($plant_id);
+		if ((!$plant_data) || (!PlantsModel::validatePublicViewSignature($plant_id, $signature))) {
+			http_response_code(404);
+
+			$view = new Asatru\View\ViewHandler();
+			$view->setLayout('public')
+				->setYield('content', 'error/404')
+				->setVars([
+					'user' => UserModel::getAuthUser()
+				]);
+
+			return $view;
+		}
+
+		$plant_ident = '#' . sprintf('%04d', $plant_data->get('id'));
+		$photos = PlantPhotoModel::getPlantGallery($plant_id);
+		$custom_attributes = CustPlantAttrModel::getForPlant($plant_id);
+
+		$tagstr = trim($plant_data->get('tags') ?? '');
+		$tags = (strlen($tagstr) > 0) ? preg_split('/\s+/', $tagstr) : [];
+
+		$edit_user_name = '';
+		$edit_user_when = '';
+		$userdata = UserModel::getUserById($plant_data->get('last_edited_user'));
+		if ($userdata) {
+			$edit_user_name = $userdata->get('name');
+			$edit_user_when = (new Carbon($plant_data->get('last_edited_date')))->diffForHumans();
+		}
+
+		$view = new Asatru\View\ViewHandler();
+		$view->setLayout('public')
+			->setYield('content', 'details_public')
+			->setVars([
+				'user' => UserModel::getAuthUser(),
+				'plant' => $plant_data,
+				'plant_ident' => $plant_ident,
+				'photos' => $photos,
+				'tags' => $tags,
+				'custom_attributes' => $custom_attributes,
+				'details_url' => url('/plants/details/' . $plant_id),
+				'login_url' => url('/auth?redirect=' . urlencode('/plants/details/' . $plant_id)),
+				'edit_user_name' => $edit_user_name,
+				'edit_user_when' => $edit_user_when
+			]);
+
+		return $view;
+	}
+
+	/**
 	 * Handles URL: /plants/add
 	 * 
 	 * @param Asatru\Controller\ControllerArg $request

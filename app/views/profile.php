@@ -18,7 +18,7 @@
 
 		<div class="field">
 			<div class="control">
-				<textarea class="textarea is-input-dark" name="notes">{{ $user->get('notes') ?? 'N/A' }}</textarea>
+				<textarea class="textarea is-input-dark" name="notes">{{ $user->get('notes') ?? '' }}</textarea>
 			</div>
 		</div>
 

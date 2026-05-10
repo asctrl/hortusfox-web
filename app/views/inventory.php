@@ -69,7 +69,7 @@
                             @if ((is_string($inventory->get($i)->get('description'))) && (strlen($inventory->get($i)->get('description')) > 0))
                                 {!! UtilsModule::translateURLs($inventory->get($i)->get('description')) !!}
                             @else
-                                {{ 'N/A' }}
+                                {{ __('app.none') }}
                             @endif
                         </pre>
                     </div>
@@ -88,11 +88,11 @@
 
                     <div class="inventory-item-footer">
                         <div class="inventory-item-location" id="inventory-item-location-{{ $inventory->get($i)->get('id') }}">
-                            {!! __('app.location_fmt', ['loc' => ($inventory->get($i)->get('location')) ?? 'N/A']) !!}
+                            {!! __('app.location_fmt', ['loc' => ($inventory->get($i)->get('location')) ?? __('app.none')]) !!}
                         </div>
 
                         <div class="inventory-item-author">
-                            {{ __('app.last_edited_by', ['name' => (($inventory->get($i)->get('last_edited_user')) ? UserModel::getNameById($inventory->get($i)->get('last_edited_user')) : 'System'), 'when' => (new Carbon($inventory->get($i)->get('last_edited_date')))->diffForHumans()]) }}
+                            {{ __('app.last_edited_by', ['name' => (($inventory->get($i)->get('last_edited_user')) ? UserModel::getNameById($inventory->get($i)->get('last_edited_user')) : ((UtilsModule::getLanguage() === 'zh-cn') ? '系统' : 'System')), 'when' => (new Carbon($inventory->get($i)->get('last_edited_date')))->diffForHumans()]) }}
                         </div>
                     </div>
                 </div>

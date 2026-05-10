@@ -861,7 +861,7 @@ window.createVueInstance = function(element) {
                     html = `
                     <div class="system-message">
                         <div class="system-message-left system-message-left-new">
-                            <div class="system-message-context">` + ((elem.userName) ? elem.userName : 'System') + ` @ ` + elem.created_at + `</div>
+                            <div class="system-message-context">` + ((elem.userName) ? elem.userName : (window.vue.systemLabel || 'System')) + ` @ ` + elem.created_at + `</div>
                             
                             <div class="system-message-content">` + elem.message + `</div>
                         </div>

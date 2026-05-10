@@ -1,5 +1,5 @@
 # First stage: Composer installation
-FROM composer:latest AS composer
+FROM composer:2 AS composer
 
 # Set the working directory in the Composer container
 WORKDIR /app
@@ -14,7 +14,7 @@ RUN composer install --no-scripts --no-autoloader
 RUN composer dump-autoload --optimize
 
 # Second stage: Apache + PHP setup
-FROM php:8.3.0-apache
+FROM php:8.3-apache
 
 # Set the working directory
 WORKDIR /var/www/html
@@ -22,6 +22,7 @@ WORKDIR /var/www/html
 # Install system dependencies
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libicu-dev \
         libpng-dev \
         libjpeg-dev \
         libonig-dev \
@@ -86,6 +87,7 @@ COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
 # Copy docker-entrypoint.sh into the container
 COPY --chmod=555 docker-entrypoint.sh /usr/local/bin/
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh
 
 # Set the script as the entrypoint
 ENTRYPOINT ["docker-entrypoint.sh"]

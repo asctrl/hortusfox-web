@@ -1989,7 +1989,7 @@
 				window.vue.comboLocation.push({ ident: {{ $location->get('id') }}, label: '{{ $location->get('name') }}'});
 				@endforeach
 
-				window.vue.comboCuttingMonth.push({ ident: '#null', label: 'N/A'});
+				window.vue.comboCuttingMonth.push({ ident: '#null', label: '{{ __('app.none') }}'});
 				@foreach (UtilsModule::GetMonthList() as $key => $value)
 				window.vue.comboCuttingMonth.push({ ident: {{ $key }}, label: '{{ $value }}'});
 				@endforeach
@@ -2036,6 +2036,7 @@
 				window.vue.loading_please_wait = '{{ __('app.loading_please_wait') }}';
 				window.vue.operationSucceeded = '{{ __('app.operationSucceeded') }}';
 				window.vue.copiedToClipboard = '{{ __('app.copied_to_clipboard') }}';
+				window.vue.systemLabel = '{{ (UtilsModule::getLanguage() === 'zh-cn') ? '系统' : 'System' }}';
 
 				window.vue.chatTypingEnable = {{ (app('chat_indicator', false)) ? 'true' : 'false' }};
 

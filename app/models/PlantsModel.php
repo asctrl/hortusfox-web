@@ -231,6 +231,46 @@ class PlantsModel extends \Asatru\Database\Model {
     }
 
     /**
+     * @return string
+     */
+    protected static function publicViewSecret()
+    {
+        return strval(app('cronjob_pw', env('APP_PUBLIC_URL', env('APP_NAME', 'hortusfox'))));
+    }
+
+    /**
+     * @param $id
+     * @return string
+     */
+    public static function getPublicViewSignature($id)
+    {
+        return substr(hash_hmac('sha256', 'plant-public-view|' . strval($id), static::publicViewSecret()), 0, 24);
+    }
+
+    /**
+     * @param $id
+     * @param $signature
+     * @return bool
+     */
+    public static function validatePublicViewSignature($id, $signature)
+    {
+        if ((!is_string($signature)) || (strlen($signature) === 0)) {
+            return false;
+        }
+
+        return hash_equals(static::getPublicViewSignature($id), $signature);
+    }
+
+    /**
+     * @param $id
+     * @return string
+     */
+    public static function getPublicViewUrl($id)
+    {
+        return public_url('/plants/public/' . strval($id) . '/' . static::getPublicViewSignature($id));
+    }
+
+    /**
      * @return mixed
      * @throws \Exception
      */
@@ -966,7 +1006,7 @@ class PlantsModel extends \Asatru\Database\Model {
             $options->invertMatrix = true;
 
             $oqr = new QRCode($options);
-			return $oqr->render(url('/plants/details/' . $plant->get('id')));
+			return $oqr->render(static::getPublicViewUrl($plant->get('id')));
         } catch (\Exception $e) {
             throw $e;
         }

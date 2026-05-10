@@ -355,7 +355,7 @@ class InventoryModel extends \Asatru\Database\Model {
             $options->invertMatrix = true;
 
             $oqr = new QRCode($options);
-			return $oqr->render(url('/inventory?expand=' . $item->get('id') . '#anchor-item-' . $item->get('id')));
+			return $oqr->render(public_url('/inventory?expand=' . $item->get('id') . '#anchor-item-' . $item->get('id')));
         } catch (\Exception $e) {
             throw $e;
         }

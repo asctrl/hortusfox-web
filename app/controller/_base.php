@@ -26,6 +26,11 @@ class BaseController extends Asatru\Controller\Controller {
 		app_mail_config();
 		app_set_timezone();
 
+		$default_lang = app('language', env('APP_LANG', 'en'));
+		if ((is_string($default_lang)) && (strlen($default_lang) > 0)) {
+			UtilsModule::setLanguage($default_lang);
+		}
+
 		if (app('auth_proxy_enable')) {
 			try {
 				UserModel::performProxyAuth();
@@ -50,7 +55,19 @@ class BaseController extends Asatru\Controller\Controller {
 				'/cronjob/backup/auto'
 			);
 
-			if (!in_array($url, $allowed_urls)) {
+			$allowed_prefixes = array(
+				'/plants/public/'
+			);
+
+			$is_allowed_prefix = false;
+			foreach ($allowed_prefixes as $prefix) {
+				if (strpos($url, $prefix) === 0) {
+					$is_allowed_prefix = true;
+					break;
+				}
+			}
+
+			if ((!in_array($url, $allowed_urls)) && (!$is_allowed_prefix)) {
 				header('Location: /auth?redirect=' . urlencode($_SERVER['REQUEST_URI']));
 				exit();
 			}
