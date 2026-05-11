@@ -18,6 +18,85 @@ class PlantsController extends BaseController {
 		parent::__construct(self::INDEX_LAYOUT);
 	}
 
+	/**
+	 * Collect detail view data for both editable and readonly plant pages
+	 *
+	 * @param mixed $plant_id
+	 * @param mixed $user
+	 * @return array|null
+	 */
+	protected function getPlantDetailsViewVars($plant_id, $user)
+	{
+		$plant_data = PlantsModel::getDetails($plant_id);
+		if (!$plant_data) {
+			return null;
+		}
+
+		$plant_ident = '#' . sprintf('%04d', $plant_data->get('id'));
+
+		$edit_user_name = '';
+		$edit_user_when = '';
+
+		$userdata = UserModel::getUserById($plant_data->get('last_edited_user'));
+		if ($userdata) {
+			$edit_user_name = $userdata->get('name');
+			$edit_user_when = (new Carbon($plant_data->get('last_edited_date')))->diffForHumans();
+		}
+
+		$orig_plant = null;
+		if ($plant_data->get('clone_origin')) {
+			$orig_plant = PlantsModel::getDetails($plant_data->get('clone_origin'));
+		}
+
+		$tagstr = trim(strval($plant_data->get('tags')));
+		$tags = [];
+		if (strlen($tagstr) > 0) {
+			$tags = preg_split('/\s+/', $tagstr);
+		}
+
+		$photos = PlantPhotoModel::getPlantGallery($plant_id);
+		$custom_attributes = CustPlantAttrModel::getForPlant($plant_id);
+		$plant_log_entries = PlantLogModel::getLogEntries($plant_id);
+		$plant_log_last_id = 0;
+		if ((is_countable($plant_log_entries)) && (count($plant_log_entries) > 0)) {
+			$last_log_entry = $plant_log_entries->get(count($plant_log_entries) - 1);
+			if (is_object($last_log_entry)) {
+				$plant_log_last_id = intval($last_log_entry->get('id'));
+			}
+		}
+
+		$plant_tasks = [];
+		$plant_task_refs = PlantTasksRefModel::getForPlant($plant_id);
+		if (is_countable($plant_task_refs)) {
+			foreach ($plant_task_refs as $plant_task_ref) {
+				$task_item = TasksModel::getTask($plant_task_ref->get('task_id'));
+
+				if (is_object($task_item)) {
+					$plant_tasks[] = $task_item;
+				}
+			}
+		}
+
+		$offspring = PlantsModel::findOffspring($plant_id);
+
+		return [
+			'user' => $user,
+			'plant' => $plant_data,
+			'orig_plant' => $orig_plant,
+			'plant_ident' => $plant_ident,
+			'photos' => $photos,
+			'tags' => $tags,
+			'custom_attributes' => $custom_attributes,
+			'plant_tasks' => $plant_tasks,
+			'plant_log_entries' => $plant_log_entries,
+			'plant_log_last_id' => $plant_log_last_id,
+			'offspring' => $offspring,
+			'edit_user_name' => $edit_user_name,
+			'edit_user_when' => $edit_user_when,
+			'readonly_view' => false,
+		];
+	}
+
     /**
 	 * Handles URL: /plants/location/{id}
 	 * 
@@ -171,66 +250,12 @@ class PlantsController extends BaseController {
 
 		$plant_id = $request->arg('id');
 
-		$plant_data = PlantsModel::getDetails($plant_id);
-		if (!$plant_data) {
+		$view_vars = $this->getPlantDetailsViewVars($plant_id, $user);
+		if (!$view_vars) {
 			return redirect('/');
 		}
-
-		$plant_ident = '#' . sprintf('%04d', $plant_data->get('id'));
 		
-		$edit_user_name = '';
-		$edit_user_when = '';
-
-		$userdata = UserModel::getUserById($plant_data->get('last_edited_user'));
-		if ($userdata) {
-			$edit_user_name = $userdata->get('name');
-			$edit_user_when = (new Carbon($plant_data->get('last_edited_date')))->diffForHumans();
-		}
-
-		$orig_plant = null;
-		if ($plant_data->get('clone_origin')) {
-			$orig_plant = PlantsModel::getDetails($plant_data->get('clone_origin'));
-		}
-
-		$tagstr = $plant_data->get('tags');
-		if (substr($tagstr, strlen($tagstr) - 1, 1) !== ' ') {
-			$tagstr .= ' ';
-		}
-
-		$tags = explode(' ', $tagstr);
-
-		$photos = PlantPhotoModel::getPlantGallery($plant_id);
-		$custom_attributes = CustPlantAttrModel::getForPlant($plant_id);
-		$plant_log_entries = PlantLogModel::getLogEntries($plant_id);
-
-		$plant_tasks = [];
-		$plant_task_refs = PlantTasksRefModel::getForPlant($plant_id);
-		if (is_countable($plant_task_refs)) {
-			foreach ($plant_task_refs as $plant_task_ref) {
-				$task_item = TasksModel::getTask($plant_task_ref->get('task_id'));
-
-				if (is_object($task_item)) {
-					$plant_tasks[] = $task_item;
-				}
-			}
-		}
-
-		$offspring = PlantsModel::findOffspring($plant_id);
-		
-		return parent::view(['content', 'details'], [
-			'user' => $user,
-			'plant' => $plant_data,
-			'orig_plant' => $orig_plant,
-			'plant_ident' => $plant_ident,
-			'photos' => $photos,
-			'tags' => $tags,
-			'custom_attributes' => $custom_attributes,
-			'plant_tasks' => $plant_tasks,
-			'plant_log_entries' => $plant_log_entries,
-			'offspring' => $offspring,
-			'edit_user_name' => $edit_user_name,
-			'edit_user_when' => $edit_user_when
-		]);
+		return parent::view(['content', 'details'], $view_vars);
 	}
 
 	/**
@@ -243,51 +268,45 @@ class PlantsController extends BaseController {
 	{
 		$plant_id = $request->arg('id');
 		$signature = $request->arg('signature');
+		$user = UserModel::getAuthUser();
 
-		$plant_data = PlantsModel::getDetails($plant_id);
-		if ((!$plant_data) || (!PlantsModel::validatePublicViewSignature($plant_id, $signature))) {
+		if ((!PlantsModel::getDetails($plant_id)) || (!PlantsModel::validatePublicViewSignature($plant_id, $signature))) {
 			http_response_code(404);
 
 			$view = new Asatru\View\ViewHandler();
 			$view->setLayout('public')
 				->setYield('content', 'error/404')
 				->setVars([
-					'user' => UserModel::getAuthUser()
+					'user' => $user
 				]);
 
 			return $view;
 		}
 
-		$plant_ident = '#' . sprintf('%04d', $plant_data->get('id'));
-		$photos = PlantPhotoModel::getPlantGallery($plant_id);
-		$custom_attributes = CustPlantAttrModel::getForPlant($plant_id);
-
-		$tagstr = trim($plant_data->get('tags') ?? '');
-		$tags = (strlen($tagstr) > 0) ? preg_split('/\s+/', $tagstr) : [];
-
-		$edit_user_name = '';
-		$edit_user_when = '';
-		$userdata = UserModel::getUserById($plant_data->get('last_edited_user'));
-		if ($userdata) {
-			$edit_user_name = $userdata->get('name');
-			$edit_user_when = (new Carbon($plant_data->get('last_edited_date')))->diffForHumans();
+		if ($user) {
+			return redirect('/plants/details/' . $plant_id);
 		}
+
+		$view_vars = $this->getPlantDetailsViewVars($plant_id, null);
+		if (!$view_vars) {
+			http_response_code(404);
+
+			$view = new Asatru\View\ViewHandler();
+			$view->setLayout('public')
+				->setYield('content', 'error/404')
+				->setVars([
+					'user' => null
+				]);
+
+			return $view;
+		}
+
+		$view_vars['readonly_view'] = true;
 
 		$view = new Asatru\View\ViewHandler();
 		$view->setLayout('public')
-			->setYield('content', 'details_public')
-			->setVars([
-				'user' => UserModel::getAuthUser(),
-				'plant' => $plant_data,
-				'plant_ident' => $plant_ident,
-				'photos' => $photos,
-				'tags' => $tags,
-				'custom_attributes' => $custom_attributes,
-				'details_url' => url('/plants/details/' . $plant_id),
-				'login_url' => url('/auth?redirect=' . urlencode('/plants/details/' . $plant_id)),
-				'edit_user_name' => $edit_user_name,
-				'edit_user_when' => $edit_user_when
-			]);
+			->setYield('content', 'details')
+			->setVars($view_vars);
 
 		return $view;
 	}

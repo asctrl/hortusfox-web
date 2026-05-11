@@ -32,6 +32,7 @@ return [
     array('/plants/location/{id}/fertilise', 'ANY', 'plants@set_plants_fertilised'),
     array('/plants/location/{id}/notes/save', 'ANY', 'plants@save_location_notes'),
     array('/plants/details/{id}', 'GET', 'plants@view_plant_details'),
+    array('/plants/open/{id}/{signature}', 'GET', 'plants@view_public_plant_details'),
     array('/plants/public/{id}/{signature}', 'GET', 'plants@view_public_plant_details'),
     array('/plants/add', 'POST', 'plants@add_plant'),
     array('/plants/details/edit', 'POST', 'plants@edit_plant_details'),

@@ -267,7 +267,7 @@ class PlantsModel extends \Asatru\Database\Model {
      */
     public static function getPublicViewUrl($id)
     {
-        return public_url('/plants/public/' . strval($id) . '/' . static::getPublicViewSignature($id));
+        return public_url('/plants/open/' . strval($id) . '/' . static::getPublicViewSignature($id) . '?view=full');
     }
 
     /**

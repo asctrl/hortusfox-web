@@ -1,3 +1,26 @@
+@if ($readonly_view)
+<style>
+	.readonly-disabled,
+	.readonly-disabled a,
+	.readonly-disabled button,
+	.readonly-disabled input,
+	.readonly-disabled label,
+	.readonly-disabled span,
+	.readonly-disabled div {
+		pointer-events: none !important;
+		cursor: not-allowed !important;
+	}
+
+	.readonly-disabled {
+		opacity: 0.5;
+	}
+	
+	.readonly-disabled input {
+		accent-color: #999;
+	}
+</style>
+@endif
+
 <div class="plant-details-title">
 	<h1>{{ $plant->get('name') . (((PlantsModel::offspringCount($plant->get('id'))) || (PlantsModel::getDetails($plant->get('clone_origin')) !== null)) ? ' (' . strval($plant->get('clone_num') + 1) . ')' : '') }}</h1>
 
@@ -5,7 +28,7 @@
 </div>
 
 <div class="margin-vertical">
-	<a class="is-default-link" href="{{ url('/plants/location/' . $plant->get('location')) }}">{{ __('app.back_to_list') }}</a>
+	<a class="is-default-link {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="{{ url('/plants/location/' . $plant->get('location')) }}">{{ __('app.back_to_list') }}</a>
 </div>
 
 @include('flashmsg.php')
@@ -16,7 +39,7 @@
 
 @if (($plant->get('clone_num')) && ($orig_plant))
 	<div class="margin-vertical is-default-text-color">
-		<i class="fas fa-clone"></i>&nbsp;<a class="is-default-link" href="{{ url('/plants/details/' . $orig_plant->get('id')) }}">{{ $orig_plant->get('name') }}</a>
+		<i class="fas fa-clone"></i>&nbsp;<a class="is-default-link {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="{{ url('/plants/details/' . $orig_plant->get('id')) }}">{{ $orig_plant->get('name') }}</a>
 	</div>
 @endif
 
@@ -24,7 +47,7 @@
 	<div class="margin-vertical is-default-text-color">
 		@foreach ($offspring as $child)
 			<div>
-				<i class="fas fa-seedling"></i>&nbsp;<a class="is-default-link" href="{{ url('/plants/details/' . $child->get('id')) }}">{{ '[#' . sprintf('%04d', (int)$child->get('clone_num') + 1) . '] ' . $child->get('name') }}</a>
+				<i class="fas fa-seedling"></i>&nbsp;<a class="is-default-link {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="{{ url('/plants/details/' . $child->get('id')) }}">{{ '[#' . sprintf('%04d', (int)$child->get('clone_num') + 1) . '] ' . $child->get('name') }}</a>
 			</div>
 		@endforeach
 	</div>
@@ -41,7 +64,7 @@
 				@csrf
 
 				<input type="text" name="plant" value="{{ $plant->get('id') }}"/>
-				<input type="file" name="photo" id="plant-rec-file-input" accept="image/*" onchange="document.getElementById('plant-rec-action-icon').classList.remove('fa-microscope'); document.getElementById('plant-rec-action-icon').classList.add('fa-spinner'); document.getElementById('plant-rec-action-icon').classList.add('fa-spin'); window.vue.performPlantRecognition('plant-rec-form', '{{ $plant->get('id') }}');"/>
+				<input type="file" name="photo" id="plant-rec-file-input" accept="image/*" onchange="document.getElementById('plant-rec-action-icon').classList.remove('fa-microscope'); document.getElementById('plant-rec-action-icon').classList.add('fa-spinner'); document.getElementById('plant-rec-action-icon').classList.add('fa-spin'); window.vue.performPlantRecognition('plant-rec-form', '{{ $plant->get('id') }}');" {{ ($readonly_view) ? 'disabled' : '' }}/>
 			</form>
 		@endif
 
@@ -56,7 +79,10 @@
 			<tbody>
 				<tr>
 					<td><strong>{{ __('app.name') }}</strong></td>
-					<td><span id="plant-details-plant-name-{{ $plant->get('id') }}">{{ $plant->get('name') }}</span> <span class="float-right">{!! ((app('plantrec_enable')) ? '<a href="javascript:void(0);" onclick="document.getElementById(\'plant-rec-file-input\').click();"><i id="plant-rec-action-icon" class="fas fa-microscope is-color-darker"></i></a>&nbsp;&nbsp;' : '') !!}<a href="javascript:void(0);" onclick="window.vue.showEditText({{ $plant->get('id') }}, 'name', document.getElementById('plant-details-plant-name-{{ $plant->get('id') }}').innerText);"><i class="fas fa-edit is-color-darker"></i></a></span></td>
+					<td>
+						<span id="plant-details-plant-name-{{ $plant->get('id') }}">{{ $plant->get('name') }}</span>
+						<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}">{!! ((app('plantrec_enable')) ? '<a href="javascript:void(0);" onclick="document.getElementById(\'plant-rec-file-input\').click();"><i id="plant-rec-action-icon" class="fas fa-microscope is-color-darker"></i></a>&nbsp;&nbsp;' : '') !!}<a href="javascript:void(0);" onclick="window.vue.showEditText({{ $plant->get('id') }}, 'name', document.getElementById('plant-details-plant-name-{{ $plant->get('id') }}').innerText);"><i class="fas fa-edit is-color-darker"></i></a></span>
+					</td>
 				</tr>
 
 				<tr>
@@ -64,8 +90,8 @@
 					<td>
 						<span id="plant-details-plant-scientific-name-{{ $plant->get('id') }}">
 							@if ($plant->get('scientific_name'))
-								@if ((is_string($plant->get('knowledge_link'))) && (strlen($plant->get('knowledge_link') > 0)))
-									<a class="is-default-link" href="{{ $plant->get('knowledge_link') }}" target="_blank">{{ $plant->get('scientific_name') }}</a>
+								@if ((is_string($plant->get('knowledge_link'))) && (strlen($plant->get('knowledge_link')) > 0))
+									<a class="is-default-link {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="{{ $plant->get('knowledge_link') }}" target="_blank">{{ $plant->get('scientific_name') }}</a>
 								@else
 									{{ $plant->get('scientific_name') }}
 								@endif
@@ -74,13 +100,13 @@
 							@endif
 						</span>
 					
-						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditLinkText({{ $plant->get('id') }}, document.getElementById('plant-details-plant-scientific-name-{{ $plant->get('id') }}').innerText, '{{ ($plant->get('knowledge_link')) ?? '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
+						<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditLinkText({{ $plant->get('id') }}, document.getElementById('plant-details-plant-scientific-name-{{ $plant->get('id') }}').innerText, '{{ (is_string($plant->get('knowledge_link'))) ? $plant->get('knowledge_link') : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
 					</td>
 				</tr>
 
 				<tr>
 					<td><strong>{{ __('app.location') }}</strong></td>
-					<td>{{ ((!$plant->get('history')) ? LocationsModel::getNameById($plant->get('location')) : app('history_name')) }} <span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'location', window.vue.comboLocation, {{ $plant->get('location') }});"><i class="fas fa-edit is-color-darker"></i></a></span></td>
+					<td>{{ ((!$plant->get('history')) ? LocationsModel::getNameById($plant->get('location')) : app('history_name')) }} <span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'location', window.vue.comboLocation, {{ $plant->get('location') }});"><i class="fas fa-edit is-color-darker"></i></a></span></td>
 				</tr>
 
 				@if (plant_attr('last_watered'))
@@ -93,7 +119,7 @@
 							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
-						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'last_watered', '{{ ($plant->get('last_watered')) ? date('Y-m-d', strtotime($plant->get('last_watered'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
+						<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'last_watered', '{{ ($plant->get('last_watered')) ? date('Y-m-d', strtotime($plant->get('last_watered'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
 					</td>
 				</tr>
 				@endif
@@ -108,7 +134,7 @@
 							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
-						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'last_repotted', '{{ ($plant->get('last_repotted')) ? date('Y-m-d', strtotime($plant->get('last_repotted'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
+						<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'last_repotted', '{{ ($plant->get('last_repotted')) ? date('Y-m-d', strtotime($plant->get('last_repotted'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
 					</td>
 					</td>
 				</tr>
@@ -124,7 +150,7 @@
 							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
-						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'last_fertilised', '{{ ($plant->get('last_fertilised')) ? date('Y-m-d', strtotime($plant->get('last_fertilised'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
+						<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'last_fertilised', '{{ ($plant->get('last_fertilised')) ? date('Y-m-d', strtotime($plant->get('last_fertilised'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
 					</td>
 					</td>
 				</tr>
@@ -140,7 +166,7 @@
 							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
-						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'lifespan', window.vue.comboLifespan, '{{ ($plant->get('lifespan') ?? 'N/A') }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
+						<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'lifespan', window.vue.comboLifespan, '{{ ($plant->get('lifespan')) ? $plant->get('lifespan') : 'N/A' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
 					</td>
 				</tr>
 				@endif
@@ -155,7 +181,7 @@
 							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
-						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditBoolean({{ $plant->get('id') }}, 'hardy', '{{ __('app.hardy') }}', {{ ($plant->get('hardy')) ? 'true' : 'false' }});"><i class="fas fa-edit is-color-darker"></i></a></span>
+						<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditBoolean({{ $plant->get('id') }}, 'hardy', '{{ __('app.hardy') }}', {{ ($plant->get('hardy')) ? 'true' : 'false' }});"><i class="fas fa-edit is-color-darker"></i></a></span>
 					</td>
 				</tr>
 				@endif
@@ -163,7 +189,7 @@
 				@if (plant_attr('cutting_month'))
 				<tr>
 					<td><strong>{{ __('app.cutting_month') }}</strong></td>
-					<td>{!! ($plant->get('cutting_month')) ? UtilsModule::getMonthList()[$plant->get('cutting_month')] : '<span class="is-not-available">' . __('app.none') . '</span>' !!} <span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'cutting_month', window.vue.comboCuttingMonth, {{ ($plant->get('cutting_month')) ?? '0' }});"><i class="fas fa-edit is-color-darker"></i></a></span></td>
+					<td>{!! ($plant->get('cutting_month')) ? UtilsModule::getMonthList()[$plant->get('cutting_month')] : '<span class="is-not-available">' . __('app.none') . '</span>' !!} <span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'cutting_month', window.vue.comboCuttingMonth, {{ ($plant->get('cutting_month')) ? $plant->get('cutting_month') : '0' }});"><i class="fas fa-edit is-color-darker"></i></a></span></td>
 				</tr>
 				@endif
 
@@ -177,7 +203,7 @@
 							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 						
-						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'date_of_purchase', '{{ ($plant->get('date_of_purchase')) ? date('Y-m-d', strtotime($plant->get('date_of_purchase'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
+						<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditDate({{ $plant->get('id') }}, 'date_of_purchase', '{{ ($plant->get('date_of_purchase')) ? date('Y-m-d', strtotime($plant->get('date_of_purchase'))) : '' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
 					</td>
 				</tr>
 				@endif
@@ -192,7 +218,7 @@
 							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
-						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditInteger({{ $plant->get('id') }}, 'humidity', '{{ ($plant->get('humidity') ?? '0') }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
+						<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditInteger({{ $plant->get('id') }}, 'humidity', '{{ ($plant->get('humidity')) ? $plant->get('humidity') : '0' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
 					</td>
 				</tr>
 				@endif
@@ -207,7 +233,7 @@
 							<span class="is-not-available">{{ __('app.none') }}</span>
 						@endif
 
-						<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'light_level', window.vue.comboLightLevel, '{{ ($plant->get('light_level') ?? 'N/A') }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
+						<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'light_level', window.vue.comboLightLevel, '{{ ($plant->get('light_level')) ? $plant->get('light_level') : 'N/A' }}');"><i class="fas fa-edit is-color-darker"></i></a></span>
 					</td>
 				</tr>
 				@endif
@@ -215,7 +241,7 @@
 				@if (plant_attr('health_state'))
 				<tr>
 					<td><strong>{{ __('app.health_state') }}</strong></td>
-					<td><span class="plant-state-{{ $plant->get('health_state') }}">{!! ($plant->get('health_state') === 'in_good_standing') ? '<i class="far fa-check-circle is-color-yes"></i>&nbsp;' : '' !!}{{ __('app.' . $plant->get('health_state')) }}</span> <span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'health_state', window.vue.comboHealthState, '{{ $plant->get('health_state') }}');"><i class="fas fa-edit is-color-darker"></i></a></span></td>
+					<td><span class="plant-state-{{ $plant->get('health_state') }}">{!! ($plant->get('health_state') === 'in_good_standing') ? '<i class="far fa-check-circle is-color-yes"></i>&nbsp;' : '' !!}{{ __('app.' . $plant->get('health_state')) }}</span> <span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditCombo({{ $plant->get('id') }}, 'health_state', window.vue.comboHealthState, '{{ $plant->get('health_state') }}');"><i class="fas fa-edit is-color-darker"></i></a></span></td>
 				</tr>
 				@endif
 
@@ -237,7 +263,7 @@
 								<span class="is-not-available">{{ __('app.none') }}</span>
 							@endif
 
-							<span class="float-right"><a href="javascript:void(0);" onclick="window.vue.showEditCustomPlantAttribute({{ $custom_attribute->id }}, {{ $custom_attribute->plant }}, '{{ $custom_attribute->label }}', '{{ $custom_attribute->datatype }}', '{{ $custom_attribute->content ?? '' }}', {{ ($custom_attribute->global) ? 'true' : 'false' }});"><i class="fas fa-edit is-color-darker"></i></a></span>
+							<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditCustomPlantAttribute({{ $custom_attribute->id }}, {{ $custom_attribute->plant }}, '{{ $custom_attribute->label }}', '{{ $custom_attribute->datatype }}', '{{ (is_string($custom_attribute->content)) ? $custom_attribute->content : '' }}', {{ ($custom_attribute->global) ? 'true' : 'false' }});"><i class="fas fa-edit is-color-darker"></i></a></span>
 						</td>
 					</tr>
 				@endforeach
@@ -246,7 +272,7 @@
 
 		@if (app('allow_custom_attributes'))
 		<div class="plant-custom-attribute">
-			<a href="javascript:void(0);" onclick="document.getElementById('custom-plant-attribute-plant-id').value = {{ $plant->get('id') }}; window.vue.bShowAddCustomPlantAttribute = true;">{{ __('app.add_custom_attribute') }}</a>
+			<a class="{{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="document.getElementById('custom-plant-attribute-plant-id').value = {{ $plant->get('id') }}; window.vue.bShowAddCustomPlantAttribute = true;">{{ __('app.add_custom_attribute') }}</a>
 		</div>
 		@endif
 	</div>
@@ -255,13 +281,13 @@
 		<div class="plant-photo" style="background-image: url('{{ abs_photo($plant->get('photo')) }}');">
 			<div class="plant-photo-overlay">
 				<div class="plant-photo-view is-pointer" onclick="window.vue.showImagePreview('{{ str_replace('_thumb', '', abs_photo($plant->get('photo'))) }}');"><i class="fas fa-expand fa-lg"></i></div>
-				<div class="plant-photo-edit is-pointer" onclick="{{ (($plant->get('photo') === PlantsModel::PLANT_PLACEHOLDER_FILE) ? 'document.getElementById(\'checkbox-move-to-gallery\').style.display = \'none\';': '') }}window.vue.showEditPhoto({{ $plant->get('id') }}, 'photo', '{{ __('app.plant_photo_orientation_hint') }}');"><i class="fas fa-upload fa-lg"></i></div>
+				<div class="plant-photo-edit is-pointer {{ ($readonly_view) ? 'readonly-disabled' : '' }}" onclick="{{ (($plant->get('photo') === PlantsModel::PLANT_PLACEHOLDER_FILE) ? 'document.getElementById(\'checkbox-move-to-gallery\').style.display = \'none\';': '') }}window.vue.showEditPhoto({{ $plant->get('id') }}, 'photo', '{{ __('app.plant_photo_orientation_hint') }}');"><i class="fas fa-upload fa-lg"></i></div>
 				@if ($plant->get('photo') !== PlantsModel::PLANT_PLACEHOLDER_FILE)
-				<div class="plant-photo-clear is-pointer" onclick="if (confirm('{{ __('app.confirm_remove_preview_photo') }}')) { window.vue.removePlantPreviewPhoto({{ $plant->get('id') }}, '.plant-photo'); }"><i class="far fa-minus-square fa-lg"></i></div>
+				<div class="plant-photo-clear is-pointer {{ ($readonly_view) ? 'readonly-disabled' : '' }}" onclick="if (confirm('{{ __('app.confirm_remove_preview_photo') }}')) { window.vue.removePlantPreviewPhoto({{ $plant->get('id') }}, '.plant-photo'); }"><i class="far fa-minus-square fa-lg"></i></div>
 				@endif
 
 				@if (app('enable_media_share', false))
-					<div class="plant-photo-share is-pointer" onclick="window.vue.showSharePhoto({{ $plant->get('id') }}, document.getElementById('plant-details-plant-name-{{ $plant->get('id') }}').innerText, 'preview');"><i class="fas fa-share fa-lg"></i></div>
+					<div class="plant-photo-share is-pointer {{ ($readonly_view) ? 'readonly-disabled' : '' }}" onclick="window.vue.showSharePhoto({{ $plant->get('id') }}, document.getElementById('plant-details-plant-name-{{ $plant->get('id') }}').innerText, 'preview');"><i class="fas fa-share fa-lg"></i></div>
 				@endif
 			</div>
 		</div>
@@ -277,7 +303,7 @@
 				@if (strlen($plant->get('tags')) > 1)
 					@foreach ($tags as $tag)
 						@if (strlen($tag) > 0)
-							<div class="plant-tags-item"><a href="{{ url('/search?query=' . $tag) }}">{{ $tag }}</a></div>
+							<div class="plant-tags-item"><a class="{{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="{{ url('/search?query=' . $tag) }}">{{ $tag }}</a></div>
 						@endif
 					@endforeach
 				@else
@@ -286,7 +312,7 @@
 			</div>
 
 			<div class="plant-tags-edit">
-				<a href="javascript:void(0);" onclick="window.vue.showEditText({{ $plant->get('id') }}, 'tags', '{{ $plant->get('tags') }}', 'plant-tags-anchor');">
+				<a class="{{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="window.vue.showEditText({{ $plant->get('id') }}, 'tags', '{{ $plant->get('tags') }}', 'plant-tags-anchor');">
 					<i class="fas fa-edit is-color-darker"></i>
 				</a>
 			</div>
@@ -299,7 +325,7 @@
 		<div class="plant-notes">
 			<a name="plant-notes-anchor"></a>
 
-			<textarea class="is-hidden" id="plant-notes-content">{{ $plant->get('notes') ?? '' }}</textarea>
+			<textarea class="is-hidden" id="plant-notes-content">{{ (is_string($plant->get('notes'))) ? $plant->get('notes') : '' }}</textarea>
 
 			<div class="plant-notes-content">
 				@if (is_string($plant->get('notes')))
@@ -310,7 +336,7 @@
 			</div>
 
 			<div class="plant-notes-edit">
-				<a href="javascript:void(0);" onclick="window.vue.showEditMultilineText({{ $plant->get('id') }}, 'notes', document.getElementById('plant-notes-content').value, 'plant-notes-anchor');">
+				<a class="{{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="window.vue.showEditMultilineText({{ $plant->get('id') }}, 'notes', document.getElementById('plant-notes-content').value, 'plant-notes-anchor');">
 					<i class="fas fa-edit is-color-darker"></i>
 				</a>
 			</div>
@@ -324,7 +350,7 @@
 			<div class="plant-gallery-title">{{ __('app.photos') }}</div>
 
 			<div class="plant-gallery-upload">
-				<a class="button is-link" href="javascript:void(0);" onclick="window.vue.showPhotoUpload({{ $plant->get('id') }});">{{ __('app.upload') }}</a>
+				<a class="button is-link {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="window.vue.showPhotoUpload({{ $plant->get('id') }});">{{ __('app.upload') }}</a>
 			</div>
 
 			<a name="plant-gallery-photo-anchor"></a>
@@ -336,7 +362,7 @@
 							<div class="plant-gallery-item-header">
 								<div class="plant-gallery-item-header-label">{{ $photo->get('label') }}</div>
 
-								<div class="plant-gallery-item-header-action">
+								<div class="plant-gallery-item-header-action {{ ($readonly_view) ? 'readonly-disabled' : '' }}">
 									<a href="javascript:void(0);" onclick="window.vue.editGalleryPhotoLabel({{ $photo->get('id') }}, {{ $plant->get('id') }}, '{{ $photo->get('label') }}');"><i class="fas fa-edit is-action-edit"></i></a>
 
 									<a href="javascript:void(0);" onclick="window.vue.setGalleryPhotoAsMain({{ $photo->get('id') }}, {{ $plant->get('id') }});"><i class="fas fa-star is-action-setmain"></i></a>
@@ -378,7 +404,7 @@
 			<a name="plant-tasks-anchor"></a>
 
 			<div class="margin-vertical">
-    			<a class="button is-warning" href="javascript:void(0);" onclick="document.getElementById('create-task-plant-id').value = '{{ $plant->get('id') }}'; window.vue.bShowCreateTask = true;">{{ __('app.create_new') }}</a>
+    			<a class="button is-warning {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="document.getElementById('create-task-plant-id').value = '{{ $plant->get('id') }}'; window.vue.bShowCreateTask = true;">{{ __('app.create_new') }}</a>
 			</div>
 
 			@if ((is_countable($plant_tasks)) && (count($plant_tasks) > 0))
@@ -389,7 +415,7 @@
 
 							<div class="task-header">
 								<div class="task-header-title" id="task-item-title-{{ $task->get('id') }}"><span>#{{ sprintf('%03d', $task->get('id')) }}</span> {{ $task->get('title') }}</div>
-								<div class="task-header-action">
+								<div class="task-header-action {{ ($readonly_view) ? 'readonly-disabled' : '' }}">
 									<span><a href="javascript:void(0);" onclick="window.vue.editTask({{ $task->get('id') }});"><i class="fas fa-edit"></i></a></span>
 									<span><a href="javascript:void(0);" onclick="if (confirm('{{ __('app.confirm_remove_task') }}')) { window.vue.removeTask({{ $task->get('id') }}); }"><i class="fas fa-trash-alt"></i></a></span>
 								</div>
@@ -405,13 +431,13 @@
 										<span class="{{ ((new DateTime($task->get('due_date'))) < (new DateTime())) ? 'is-task-overdue' : '' }}">{{ date('Y-m-d', strtotime($task->get('due_date'))) }}</span>
 										
 										@if ($task->get('recurring_time') !== null)
-											<span class="is-task-recurring" data-time="{{ TasksModel::translateScope($task->get('recurring_time'), $task->get('recurring_scope')) ?? '' }}" data-scope="{{ $task->get('recurring_scope') ?? '' }}"><i class="far fa-clock {{ ((!$task->get('recurring_time')) ? 'is-hidden' : '') }}"></i></span>
+											<span class="is-task-recurring" data-time="{{ ($task->get('recurring_time') !== null) ? TasksModel::translateScope($task->get('recurring_time'), $task->get('recurring_scope')) : '' }}" data-scope="{{ ($task->get('recurring_scope') !== null) ? $task->get('recurring_scope') : '' }}"><i class="far fa-clock {{ ((!$task->get('recurring_time')) ? 'is-hidden' : '') }}"></i></span>
 										@endif
 									@endif
 								</div>
 								
-								<div class="task-footer-action">
-									<input type="radio" onclick="window.vue.toggleTaskStatus({{ $task->get('id') }});" {{ ($task->get('done')) ? 'checked' : '' }} /><a href="javascript:void(0);" onclick="window.vue.toggleTaskStatus({{ $task->get('id') }});">&nbsp;{{ __('app.done') }}</a>
+								<div class="task-footer-action {{ ($readonly_view) ? 'readonly-disabled' : '' }}">
+									<input type="radio" onclick="window.vue.toggleTaskStatus({{ $task->get('id') }});" {{ ($task->get('done')) ? 'checked' : '' }} {{ ($readonly_view) ? 'disabled' : '' }} /><a href="javascript:void(0);" onclick="window.vue.toggleTaskStatus({{ $task->get('id') }});">&nbsp;{{ __('app.done') }}</a>
 								</div>
 							</div>
 						</div>
@@ -455,15 +481,15 @@
 							<td>{{ date('Y-m-d', strtotime($plant_log_entry->get('created_at'))) }} / {{ date('Y-m-d', strtotime($plant_log_entry->get('updated_at'))) }}</td>
 							<td>
 								<span class="float-right">
-									<span><a href="javascript:void(0);" onclick="window.vue.showEditPlantLogEntry('{{ $plant_log_entry->get('id') }}', '{{ $plant->get('id') }}', document.getElementById('plant-log-entry-item-{{ $plant_log_entry->get('id') }}').innerText, 'plant-log-anchor');"><i class="fas fa-edit is-color-darker"></i></a></span>&nbsp;<span class="float-right"><a href="javascript:void(0);" onclick="if (confirm('{{ __('app.confirm_remove_plant_log_entry') }}')) { window.vue.removePlantLogEntry('{{ $plant_log_entry->get('id') }}', 'plant-log-entry-table-row-{{ $plant_log_entry->get('id') }}'); }"><i class="fas fa-trash-alt is-color-darker"></i></a></span>
+									<span class="{{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="window.vue.showEditPlantLogEntry('{{ $plant_log_entry->get('id') }}', '{{ $plant->get('id') }}', document.getElementById('plant-log-entry-item-{{ $plant_log_entry->get('id') }}').innerText, 'plant-log-anchor');"><i class="fas fa-edit is-color-darker"></i></a></span>&nbsp;<span class="float-right {{ ($readonly_view) ? 'readonly-disabled' : '' }}"><a href="javascript:void(0);" onclick="if (confirm('{{ __('app.confirm_remove_plant_log_entry') }}')) { window.vue.removePlantLogEntry('{{ $plant_log_entry->get('id') }}', 'plant-log-entry-table-row-{{ $plant_log_entry->get('id') }}'); }"><i class="fas fa-trash-alt is-color-darker"></i></a></span>
 								</span>
 							</td>
 						</tr>
 						@endforeach
 
-						@if ($plant_log_entries->get(count($plant_log_entries) - 1)?->get('id') > 1)
+						@if ($plant_log_last_id > 1)
 							<tr id="plant-log-load-more" class="plant-log-paginate">
-								<td colspan="3"><a href="javascript:void(0);" onclick="window.vue.loadNextPlantLogEntries(this, '{{ $plant->get('id') }}', document.getElementById('plant-log-table'));" data-paginate="{{ $plant_log_entries->get(count($plant_log_entries) - 1)?->get('id') }}">{{ __('app.load_more') }}</a></td>
+								<td colspan="3"><a class="{{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="window.vue.loadNextPlantLogEntries(this, '{{ $plant->get('id') }}', document.getElementById('plant-log-table'));" data-paginate="{{ $plant_log_last_id }}">{{ __('app.load_more') }}</a></td>
 							</tr>
 						@endif
 					</tbody>
@@ -474,7 +500,7 @@
 			@endif
 
 			<div class="plant-log-action">
-				<a class="button is-info" href="javascript:void(0);" onclick="window.vue.showAddPlantLogEntry('{{ $plant->get('id') }}', 'plant-log-anchor');">{{ __('app.add_plant_log_entry') }}</a>
+				<a class="button is-info {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="window.vue.showAddPlantLogEntry('{{ $plant->get('id') }}', 'plant-log-anchor');">{{ __('app.add_plant_log_entry') }}</a>
 			</div>
 		</div>
 	</div>
@@ -486,25 +512,25 @@
 		@if (app('history_enable'))
 			@if (!$plant->get('history'))
 				<span>
-					<a class="button is-warning" href="javascript:void(0);" onclick="window.vue.markHistorical({{ $plant->get('id') }});">{{ app('history_name') }}</a>&nbsp;
+					<a class="button is-warning {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="window.vue.markHistorical({{ $plant->get('id') }});">{{ app('history_name') }}</a>&nbsp;
 				</span>
 			@else
 				<span>
-					<a class="button is-warning" href="javascript:void(0);" onclick="window.vue.unmarkHistorical({{ $plant->get('id') }});">{{ app('history_name') }}</a>&nbsp;
+					<a class="button is-warning {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="window.vue.unmarkHistorical({{ $plant->get('id') }});">{{ app('history_name') }}</a>&nbsp;
 				</span>
 			@endif
 		@endif
 
 		<span>	
-			<a class="button is-danger" href="javascript:void(0);" onclick="window.vue.deletePlant({{ $plant->get('id') }}, {{ $plant->get('location') }});">{{ __('app.remove_plant') }}</a>&nbsp;
+			<a class="button is-danger {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="window.vue.deletePlant({{ $plant->get('id') }}, {{ $plant->get('location') }});">{{ __('app.remove_plant') }}</a>&nbsp;
 		</span>
 
 		<span>	
-			<a class="button is-info" href="javascript:void(0);" onclick="window.vue.clonePlant({{ $plant->get('id') }});">{{ __('app.clone_plant') }}</a>&nbsp;
+			<a class="button is-info {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="window.vue.clonePlant({{ $plant->get('id') }});">{{ __('app.clone_plant') }}</a>&nbsp;
 		</span>
 
 		<span>
-			<a class="button" href="javascript:void(0);" onclick="document.getElementById('title-plant-qr-code').value = '#{{ $plant->get('id') }} ' + document.getElementById('plant-details-plant-name-{{ $plant->get('id') }}').innerText; window.vue.generateAndShowQRCode({{ $plant->get('id') }});">{{ __('app.show_qr_code') }}</a>
+			<a class="button {{ ($readonly_view) ? 'readonly-disabled' : '' }}" href="javascript:void(0);" onclick="document.getElementById('title-plant-qr-code').value = '#{{ $plant->get('id') }} ' + document.getElementById('plant-details-plant-name-{{ $plant->get('id') }}').innerText; window.vue.generateAndShowQRCode({{ $plant->get('id') }});">{{ __('app.show_qr_code') }}</a>
 		</span>
 	</div>
 </div>

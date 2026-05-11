@@ -56,6 +56,7 @@ class BaseController extends Asatru\Controller\Controller {
 			);
 
 			$allowed_prefixes = array(
+				'/plants/open/',
 				'/plants/public/'
 			);
 
